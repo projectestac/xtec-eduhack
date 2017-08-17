@@ -1,0 +1,170 @@
+<?php
+/**
+ * Eduhack theme functions and definitions.
+ *
+ * @package XTEC Blocs
+ * @subpackage Eduhack
+ * @since Eduhack 1.0
+ */
+
+
+/**
+ * Enqueues the theme scripts.
+ *
+ * @since Eduhack 1.0
+ */
+function ehth_enqueue_scripts() {
+    if ( is_admin() )
+        return;
+    
+    // Paths to Fukusawa and this child theme
+    
+    $parent_uri = get_template_directory_uri();
+    $child_uri = get_stylesheet_directory_uri();
+    
+    // Enqueue the default Fukasawa scripts; except for the masonry,
+    // that gets replaced by a dummy jQuery plugin
+    
+    wp_enqueue_script( 'fukasawa_flexslider', "$parent_uri/js/flexslider.min.js",
+        array('jquery', 'eduhack_masonry'), '', true );
+    
+    wp_enqueue_script( 'fukasawa_global', "$parent_uri/js/global.js",
+        array('jquery', 'eduhack_masonry'), '', true );
+    
+    wp_enqueue_script( 'eduhack_masonry', "$child_uri/scripts/masonry.js",
+        array('jquery'), '', true );
+    
+    if ( is_singular() ) {
+        wp_enqueue_script( 'comment-reply' );
+    }
+}
+
+
+/**
+ * Enqueues the theme CSS styles.
+ *
+ * @since Eduhack 1.0
+ */
+function ehth_print_styles() {
+    if ( is_admin() )
+        return;
+    
+    $parent_uri = get_template_directory_uri();
+    $child_uri = get_stylesheet_directory_uri();
+    
+    wp_enqueue_style( 'fukasawa_genericons', "$parent_uri/genericons/genericons.css" );
+    wp_enqueue_style( 'fukasawa_style', "$parent_uri/style.css" );
+    wp_enqueue_style( 'eduhack_style', "$child_uri/style.css",
+        array( 'fukasawa_style' ), wp_get_theme()->get('Version') );
+}
+
+
+/**
+ * Returns the current posts order set for a category.
+ *
+ * This method checks the session variable 'xtec_category' to obtain the
+ * order, which is defined by the built-in extension 'cat_sort'.
+ *
+ * @since Eduhack 1.0
+ * @return string   'asc' or 'desc' (default).
+ */
+function ehth_get_category_order() {
+    if ( isset($_SESSION['xtec_category']) ) {
+        $order = $_SESSION['xtec_category'];
+        
+        return ($order === 'ASC') ? 'asc' : 'desc';
+    }
+    
+    return 'desc';
+}
+
+
+/**
+ * Registers this theme's action hooks and removes the actions that
+ * conflict with this theme behaviour.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'after_setup_theme', function() {
+    add_action( 'wp_enqueue_scripts', 'ehth_enqueue_scripts' );
+    add_action( 'wp_print_styles', 'ehth_print_styles' );
+    
+    remove_action( 'wp_print_styles', 'fukasawa_load_style' );
+    remove_action( 'wp_enqueue_scripts', 'fukasawa_load_javascript_files' );
+});
+
+
+/**
+ * Reverse the default posts order for categories.
+ *
+ * This hook forces the order of the posts in a category to be in ascending
+ * chronological order and removes sticky post from the results.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'pre_get_posts', function( $query ) {
+    if ( !$query->is_main_query() )
+        return;
+
+    if ( !$query->is_category() )
+        return;
+    
+    // Obtain the posts order for the category
+    
+    $order = ehth_get_category_order();
+    
+    // Set the posts order and reset the posts per page limit
+    
+    $query->set( 'posts_per_page', get_option( 'posts_per_page' ) );
+    $query->set( 'post__not_in', get_option( 'sticky_posts' ) );
+    $query->set( 'orderby', 'date' );
+    $query->set( 'order', $order );
+});
+
+
+/**
+ * Prepend sticky posts to the first page of a category.
+ *
+ * @since Eduhack 1.0
+ */
+add_filter( 'the_posts', function( $posts ) {
+    if ( is_admin() || !is_main_query() )
+        return $posts;
+    
+    if ( get_query_var( 'paged' ) > 1 || !is_category() )
+        return $posts;
+    
+    // Prepend sticky posts at the top
+    
+    $order = ehth_get_category_order();
+    $post_in = get_option( 'sticky_posts' );
+    $category = get_query_var('cat');
+    
+    if ( $post_in && $category ) {
+        $stickies = get_posts([
+            'post__in' => $post_in,
+            'category' => $category,
+            'post_status' => 'publish',
+            'nopaging' => true,
+            'orderby' => 'date',
+            'order' => $order
+        ]);
+        
+        foreach ( array_reverse($stickies) as $post ) {
+            array_unshift( $posts, $post );
+        }
+    }
+    
+    return $posts;
+});
+
+
+/**
+ * Add the 'post' CSS class to custom post types. This is required in order
+ * to correctly format the posts types created with the plugin Toolset Types.
+ *
+ * @since Eduhack 1.0
+ */
+add_filter( 'post_class', function($classes) {
+    return array_merge($classes, ['post']);
+});
