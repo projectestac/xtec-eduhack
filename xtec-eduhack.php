@@ -175,6 +175,7 @@ register_activation_hook( __FILE__, function() {
  */
 add_action( 'plugins_loaded', function() {
     load_plugin_textdomain( 'xtec-eduhack', false, 'xtec-eduhack/languages' );
+    load_plugin_textdomain( 'widget-options', false, 'xtec-eduhack/languages/' );
 });
 
 
@@ -187,17 +188,6 @@ register_theme_directory( dirname( __FILE__ ) . '/themes' );
 
 
 /* Functions that modify common plugins behaviour */
-
-
-/**
- * Loads translations for common plugins. This is required because some
- * plugins do not load translations automatically.
- *
- * @since Eduhack 1.0
- */
-add_action( 'plugins_loaded', function() {
-    load_plugin_textdomain( 'widget-options', false, 'widget-options/languages/' );
-});
 
 
 /**
@@ -254,9 +244,9 @@ add_action( 'do_meta_boxes', function() {
     // Plugin: tabs-responsive
     
     remove_meta_box( 'tabs_r_more_pro', 'tabs_responsive', 'normal' );
+    remove_meta_box( 'tabs_r_rateus', 'tabs_responsive', 'side' );
     remove_meta_box( 'tabs_r_shortcode', 'tabs_responsive', 'normal' );
     remove_meta_box( 'wpsm_tabs_r_pic_more_pro', 'tabs_responsive', 'normal' );
-    remove_meta_box( 'tabs_r_rateus', 'tabs_responsive', 'side' );
 });
 
 
@@ -270,7 +260,6 @@ add_action('admin_menu', function() {
     if ( !is_main_site() && !is_super_admin() ) {
         remove_submenu_page( 'themes.php', 'themes.php' );
         remove_submenu_page( 'options-general.php', 'widgetopts_plugin_settings' );
-        remove_menu_page( 'toolset-dashboard' );
     }
 }, 1000);
 
