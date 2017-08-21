@@ -27,6 +27,10 @@ if ( !is_user_logged_in() || !is_main_site() ) {
 	exit(1);
 }
 
+// Make sure the form is shown in the user's chosen locale
+
+switch_to_locale( get_user_locale() );
+
 // Only XTEC users are allowed to create new projects
 
 if ( !is_super_admin() && !xtec_is_xtec_user($user->ID) ) {
