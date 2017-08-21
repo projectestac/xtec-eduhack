@@ -27,9 +27,6 @@ const XTEH_BASE_PATH = '/eduhack-';
 /** Network ID of the multisite blog */
 const XTEH_NETWORK_ID = 1;
 
-/** ID of the blog that must be cloned */
-const XTEH_TEMPLATE_ID = 10000;
-
 
 /**
  * Validates the requested form and returns the found errors or an empty
@@ -100,6 +97,7 @@ function xteh_duplicate_site( $form ) {
     
     // Clone the template site
     
+    $template_id = get_site_option( 'eduhack_template_id' );
     $user = wp_get_current_user();
     $slug = strtolower($form['slug']);
     
@@ -109,7 +107,7 @@ function xteh_duplicate_site( $form ) {
         'path' => XTEH_BASE_PATH . "$slug/",
         'domain' => XTEH_DOMAIN,
         'newdomain' => XTEH_DOMAIN,
-        'from_site_id' => XTEH_TEMPLATE_ID,
+        'from_site_id' => $template_id,
         'network_id' => XTEH_NETWORK_ID,
         'keep_users' => false,
         'copy_files' => true,
@@ -131,13 +129,43 @@ function xteh_duplicate_site( $form ) {
 
 
 /**
+ * Create the template blog that will be cloned. The created template
+ * identifier will be stored on the 'eduhack_template_id' site option.
+ *
+ * @since Eduhack 1.0
+ */
+function xteh_create_template() {
+    $blog_id = wpmu_create_blog(
+        XTEH_DOMAIN,
+        XTEH_BASE_PATH . 'template',
+        sprintf(__('%s Template', 'xtec-eduhack'), XTEH_NAME),
+        wp_get_current_user()->ID,
+        '',
+        XTEH_NETWORK_ID
+    );
+    
+    switch_to_blog( $blog_id );
+    activate_plugin( 'xtec-eduhack/xtec-eduhack.php', null, false, true);
+    activate_plugin( 'widget-options/plugin.php', null, false, false);
+    activate_plugin( 'tabs-responsive/tabs-responsive.php', null, false, false);
+    switch_theme( 'eduhack' );
+    restore_current_blog();
+    
+    update_blog_status( $blod_id, 'public', 0 );
+    update_site_option( 'eduhack_template_id', $blog_id );
+}
+
+
+/**
  * Prevents access to the template site. Only members of the site and super
  * admins will be able to access the template pages.
  *
  * @since Eduhack 1.0
  */
 add_action( 'wp_loaded', function() {
-    if ( get_current_blog_id() == XTEH_TEMPLATE_ID ) {
+    $template_id = get_site_option( 'eduhack_template_id' );
+    
+    if ( get_current_blog_id() == $template_id ) {
         if ( !is_super_admin() && !is_user_member_of_blog() ) {
             wp_redirect( network_home_url() );
             exit(1);
@@ -153,17 +181,33 @@ add_action( 'wp_loaded', function() {
  * @since Eduhack 1.0
  */
 register_activation_hook( __FILE__, function() {
+    // Check that all the requeriments for this plugin are fullfilled
+    
     $mucd_slug = 'multisite-clone-duplicator';
     
     if ( ! is_plugin_active( "$mucd_slug/$mucd_slug.php" ) ) {
         wp_die(__(
           'This plugin requires Multisite Clone Duplicator to be insalled ' .
-          'and active for the main site.'
+          'and active for the main site.', 'xtec-eduhack'
         ));
     }
     
     if ( empty(wp_get_theme( 'fukasawa' )) ) {
-        wp_die(__('This plugin requires the Fukasawa theme to be insalled.'));
+        wp_die(__(
+            'This plugin requires the Fukasawa theme to be insalled.',
+            'xtec-eduhack'
+        ));
+    }
+    
+    // Create the template blog template if we are activating this plugin
+    // on the main site and the template does not exist
+    
+    if ( is_user_logged_in() && is_main_site() ) {
+        $id = get_site_option( 'eduhack_template_id' );
+        
+        if ( $id === false || get_blog_details($id)->blog_id !== $id ) {
+            xteh_create_template();
+        }
     }
 });
 
