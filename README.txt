@@ -23,5 +23,5 @@ to work as expected:
 
   RewriteRule ^(eduhack/)(.*) wp-content/plugins/xtec-eduhack/$2 [L]
 
-In order to configure the template that must be cloned automatically, please
-see the availabe options on the xtec-eduhack/xtec-eduhack.php file.
+The template blog that will be cloned is created automatically the first time
+this plugins is enabled on the *main* site.

@@ -18,14 +18,8 @@ License URI:    http://www.gnu.org/licenses/gpl-2.0.html
 /** Project name */
 const XTEH_NAME = 'EduHack';
 
-/** Domain of the multisite blog to clone */
-const XTEH_DOMAIN = 'blocs.xtec.cat';
-
 /** Base path of the multisite blog */
-const XTEH_BASE_PATH = '/eduhack-';
-
-/** Network ID of the multisite blog */
-const XTEH_NETWORK_ID = 1;
+const XTEH_BASE_PATH = 'eduhack-';
 
 
 /**
@@ -40,6 +34,7 @@ const XTEH_NETWORK_ID = 1;
 function xteh_validate_form($form) {
     $errors = new WP_Error();
     $fields = ['title', 'slug', 'description', '_wpnonce'];
+    $site = get_current_site();
     
     // Check that all the required fields where provided
     
@@ -62,14 +57,14 @@ function xteh_validate_form($form) {
     // Check that the slug is valid and not already taken
     
     $slug = strtolower($form['slug']);
-    $path = XTEH_BASE_PATH . "$slug/";
+    $path = $site->path . XTEH_BASE_PATH . "$slug/";
     
     if (!preg_match('/^([a-z0-9-])+$/i', $slug)) {
         $errors->add('invalid_domain', __(
             'The web address must contain only letters and numbers.', 'xtec-eduhack'));
     }
     
-    if (domain_exists(XTEH_DOMAIN, $path)) {
+    if (domain_exists($site->domain, $path)) {
         $errors->add('invalid_domain', __(
             'The choosen web address already exits.', 'xtec-eduhack'));
     }
@@ -98,17 +93,18 @@ function xteh_duplicate_site( $form ) {
     // Clone the template site
     
     $template_id = get_site_option( 'eduhack_template_id' );
+    $site = get_current_site();
     $user = wp_get_current_user();
     $slug = strtolower($form['slug']);
     
     $message = MUCD_Duplicate::duplicate_site([
         'title' => $form['title'],
         'email' => $user->user_email,
-        'path' => XTEH_BASE_PATH . "$slug/",
-        'domain' => XTEH_DOMAIN,
-        'newdomain' => XTEH_DOMAIN,
+        'path' => $site->path . XTEH_BASE_PATH . "$slug/",
+        'domain' => $site->domain,
+        'newdomain' => $site->domain,
         'from_site_id' => $template_id,
-        'network_id' => XTEH_NETWORK_ID,
+        'network_id' => $site->id,
         'keep_users' => false,
         'copy_files' => true,
         'public' => true
@@ -135,13 +131,15 @@ function xteh_duplicate_site( $form ) {
  * @since Eduhack 1.0
  */
 function xteh_create_template() {
+    $site = get_current_site();
+    
     $blog_id = wpmu_create_blog(
-        XTEH_DOMAIN,
-        XTEH_BASE_PATH . 'template',
+        $site->domain,
+        $site->path . XTEH_BASE_PATH . 'template',
         sprintf(__('%s Template', 'xtec-eduhack'), XTEH_NAME),
         wp_get_current_user()->ID,
         '',
-        XTEH_NETWORK_ID
+        $site->id
     );
     
     switch_to_blog( $blog_id );
