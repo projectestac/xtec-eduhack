@@ -190,7 +190,9 @@ register_activation_hook( __FILE__, function() {
         ));
     }
     
-    if ( empty(wp_get_theme( 'fukasawa' )) ) {
+    $theme = wp_get_theme( 'fukasawa' );
+    
+    if ( empty($theme) ) {
         wp_die(__(
             'This plugin requires the Fukasawa theme to be insalled.',
             'xtec-eduhack'
