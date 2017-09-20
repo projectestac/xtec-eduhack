@@ -264,6 +264,16 @@ register_theme_directory( dirname( __FILE__ ) . '/themes' );
 
 
 /**
+ * Disable the tags taxonomy for posts.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'init', function() {
+    unregister_taxonomy_for_object_type( 'post_tag', 'post' );
+});
+
+
+/**
  * Remove plugin actions if they are registered. The removed actions
  * usually contain only advertisings.
  *
