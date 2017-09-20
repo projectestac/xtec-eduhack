@@ -33,13 +33,13 @@ const XTEH_BASE_PATH = 'eduhack-';
  */
 function xteh_validate_form($form) {
     $errors = new WP_Error();
-    $fields = ['title', 'slug', 'description', '_wpnonce'];
+    $fields = ['title', 'slug', 'email', '_wpnonce'];
     $site = get_current_site();
     
     // Check that all the required fields where provided
     
     foreach ($fields as $field) {
-        if (isset($form[$field]) === false) {
+        if (isset($form[$field]) === false || trim($form[$field]) == '') {
             $errors->add('missing_field', __(
                 'All the fields must be filled.', 'xtec-eduhack'));
             
@@ -50,23 +50,46 @@ function xteh_validate_form($form) {
     // Verify that the form was submited from our web site
     
     if (!wp_verify_nonce($form['_wpnonce'], 'clone_eduhack_template')) {
-       $errors->add('invalid_nonce', __(
-           'Could not process the form.', 'xtec-eduhack'));
+        $errors->add('invalid_nonce', __(
+            'Could not process the form.', 'xtec-eduhack'));
     }
     
     // Check that the slug is valid and not already taken
     
-    $slug = strtolower($form['slug']);
+    $slug = strtolower(trim($form['slug']));
     $path = $site->path . XTEH_BASE_PATH . "$slug/";
     
     if (!preg_match('/^([a-z0-9-])+$/i', $slug)) {
         $errors->add('invalid_domain', __(
-            'The web address must contain only letters and numbers.', 'xtec-eduhack'));
+            'The web address must contain only letters and numbers.',
+            'xtec-eduhack')
+        );
     }
     
     if (domain_exists($site->domain, $path)) {
         $errors->add('invalid_domain', __(
-            'The choosen web address already exits.', 'xtec-eduhack'));
+            'The choosen web address already exits.',
+            'xtec-eduhack')
+        );
+    }
+    
+    // Validate the blog administrator address. It must be a valid email
+    // found on the users table.
+    
+    $email = trim($form['email']);
+    
+    if ( is_email( $email ) && !email_exists( $email ) ) {
+        $errors->add('invalid_email', __(
+            'The given email does not pertain to a registered user.',
+            'xtec-eduhack')
+        );
+    }
+    
+    if ( !is_email( $email ) ) {
+        $errors->add('invalid_email', __(
+            'The given email address is not valid.',
+            'xtec-eduhack')
+        );
     }
     
     return $errors;
@@ -94,12 +117,13 @@ function xteh_duplicate_site( $form ) {
     
     $template_id = get_site_option( 'eduhack_template_id' );
     $site = get_current_site();
-    $user = wp_get_current_user();
-    $slug = strtolower($form['slug']);
+    $title = trim($form['title']);
+    $email = trim($form['email']);
+    $slug = strtolower(trim($form['slug']));
     
     $message = MUCD_Duplicate::duplicate_site([
-        'title' => $form['title'],
-        'email' => $user->user_email,
+        'title' => $title,
+        'email' => $email,
         'path' => $site->path . XTEH_BASE_PATH . "$slug/",
         'domain' => $site->domain,
         'newdomain' => $site->domain,
@@ -110,11 +134,16 @@ function xteh_duplicate_site( $form ) {
         'public' => true
     ]);
     
-    // If the blog was cloned successfuly, update its description
+    // If the blog was cloned successfuly, update its description and
+    // set the blog as public
     
     if ( !isset( $message['error'] ) && isset( $message['site_id'] ) ) {
         $site_id = $message['site_id'];
-        $description = $form['description'];
+        $description = sprintf(__('%s Project', 'xtec-eduhack'), XTEH_NAME);
+        
+        if ( isset($form['description']) && trim($form['description']) != '' ) {
+            $description = trim($form['description']);
+        }
         
         update_blog_option($site_id, 'blogdescription', $description);
         update_blog_option($site_id, 'blog_public', 1);

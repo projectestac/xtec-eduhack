@@ -31,12 +31,12 @@ if ( !is_user_logged_in() || !is_main_site() ) {
 
 switch_to_locale( get_user_locale() );
 
-// Only XTEC users are allowed to create new projects
+// Only super admins are allowed to create new projects
 
-if ( !is_super_admin() && !xtec_is_xtec_user($user->ID) ) {
+if ( is_super_admin() == false ) {
     /* translators: %s = project name, %s = log out URL */
     wp_die(sprintf(__(
-      'Only registered XTEC users can create new %s projects. Please, ' .
+      'Only super administrators can create new %s projects. Please, ' .
       '<a href="%s">log out</a> and sign in again with a different user.',
       'xtec-eduhack'), XTEH_NAME, wp_logout_url( 'eduhack/' )));
     
@@ -133,6 +133,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="post" class="clone-form">
               <?php wp_nonce_field( 'clone_eduhack_template' ); ?>
               <div class="form-group">
+                <label for="email" class="control-label">
+                  <?php esc_html_e('Administrator email', 'xtec-eduhack') ?>
+                </label>
+                <input id="email" name="email" type="text"
+                       placeholder="<?php esc_attr_e('Required', 'xtec-eduhack') ?>"
+                       value="<?= esc_attr( @$_POST['email'] ?: '' ); ?>"
+                       maxlength="320" required class="form-control"/>
+              </div>
+              <div class="form-group">
                 <label for="title" class="control-label required-field">
                   <?php esc_html_e('Title', 'xtec-eduhack') ?>
                 </label>
@@ -145,9 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="description" class="control-label required-field">
                   <?php esc_html_e('Description', 'xtec-eduhack') ?>
                 </label>
-                <textarea id="description" name="description" rows="6"
-                          placeholder="<?php esc_attr_e('Required', 'xtec-eduhack') ?>"
-                          maxlength="500" required class="form-control"><?=
+                <textarea id="description" name="description" rows="3"
+                          maxlength="500" class="form-control"><?=
                   esc_textarea( @$_POST['description'] ?: '' );
                 ?></textarea>
               </div>
