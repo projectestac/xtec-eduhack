@@ -15,11 +15,17 @@ License:        GNU General Public License v2 or later
 License URI:    http://www.gnu.org/licenses/gpl-2.0.html
 */
 
+
 /** Project name */
 const XTEH_NAME = 'EduHack';
 
 /** Base path of the multisite blog */
 const XTEH_BASE_PATH = 'eduhack-';
+
+
+/* PUBLIC API
+ * Plugin functions.
+ */
 
 
 /**
@@ -183,23 +189,9 @@ function xteh_create_template() {
 }
 
 
-/**
- * Prevents access to the template site. Only members of the site and super
- * admins will be able to access the template pages.
- *
- * @since Eduhack 1.0
+/* ACTIVATION AND INITIALIZATION
+ * Hooks to initialize and configure this plugin.
  */
-add_action( 'wp_loaded', function() {
-    $template_id = get_site_option( 'eduhack_template_id' );
-    
-    if ( get_current_blog_id() == $template_id ) {
-        if ( !is_super_admin() && !is_user_member_of_blog() ) {
-            wp_redirect( network_home_url() );
-            exit(1);
-        }
-    }
-});
-
 
 /**
  * Activate this plugin. This plugin requires the Multisite Clone Duplicator
@@ -253,14 +245,47 @@ add_action( 'plugins_loaded', function() {
 
 
 /**
- * Register the EduHack theme with this extension.
- * 
+ * Prevents access to the template site. Only members of the site and super
+ * admins will be able to access the template pages.
+ *
  * @since Eduhack 1.0
  */
-register_theme_directory( dirname( __FILE__ ) . '/themes' );
+add_action( 'wp_loaded', function() {
+    $template_id = get_site_option( 'eduhack_template_id' );
+    
+    if ( get_current_blog_id() == $template_id ) {
+        if ( !is_super_admin() && !is_user_member_of_blog() ) {
+            wp_redirect( network_home_url() );
+            exit(1);
+        }
+    }
+});
 
 
-/* Functions that modify common plugins behaviour */
+/**
+ * Hides certain menus from the administration dashboard. Note that this
+ * does not prevent the user from accessing the option pages directly.
+ *
+ * @since Eduhack 1.0
+ */
+add_action('admin_menu', function() {
+    if ( !is_main_site() && !is_super_admin() ) {
+        remove_submenu_page( 'themes.php', 'themes.php' );
+        remove_submenu_page( 'options-general.php', 'widgetopts_plugin_settings' );
+    }
+}, 1000);
+
+
+/**
+ * Removes the themes picker option from the customize manager.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'customize_register', function( $wp_customize ) {
+    if ( !is_main_site() && !is_super_admin() ) {
+        $wp_customize->remove_section( 'themes' );
+    }
+}, 1000);
 
 
 /**
@@ -272,6 +297,19 @@ add_action( 'init', function() {
     unregister_taxonomy_for_object_type( 'post_tag', 'post' );
 });
 
+
+/**
+ * Register the EduHack theme with this extension.
+ * 
+ * @since Eduhack 1.0
+ */
+register_theme_directory( dirname( __FILE__ ) . '/themes' );
+
+
+/* COMMON PLUGINS HOOKS
+ * This hooks remove ads, notices and premium options from the
+ * required plugins.
+ */
 
 /**
  * Remove plugin actions if they are registered. The removed actions
@@ -331,29 +369,3 @@ add_action( 'do_meta_boxes', function() {
     remove_meta_box( 'tabs_r_shortcode', 'tabs_responsive', 'normal' );
     remove_meta_box( 'wpsm_tabs_r_pic_more_pro', 'tabs_responsive', 'normal' );
 });
-
-
-/**
- * Hides certain menus from the administration dashboard. Note that this
- * does not prevent the user from accessing the option pages directly.
- *
- * @since Eduhack 1.0
- */
-add_action('admin_menu', function() {
-    if ( !is_main_site() && !is_super_admin() ) {
-        remove_submenu_page( 'themes.php', 'themes.php' );
-        remove_submenu_page( 'options-general.php', 'widgetopts_plugin_settings' );
-    }
-}, 1000);
-
-
-/**
- * Removes the themes picker option from the customize manager.
- *
- * @since Eduhack 1.0
- */
-add_action( 'customize_register', function( $wp_customize ) {
-    if ( !is_main_site() && !is_super_admin() ) {
-        $wp_customize->remove_section( 'themes' );
-    }
-}, 1000);
