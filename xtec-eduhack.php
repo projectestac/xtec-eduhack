@@ -306,6 +306,93 @@ add_action( 'init', function() {
 register_theme_directory( dirname( __FILE__ ) . '/themes' );
 
 
+/* CATEGORY EDITION HOOKS
+ * This hooks add custom fields to the category edition pages.
+ */
+
+/**
+ * Registers a color picker for the administration pages.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'admin_enqueue_scripts', function() {
+    if ( !is_admin() )
+        return;
+    
+    wp_enqueue_style( 'wp-color-picker' );
+    
+    wp_enqueue_script( 'eduhack_color_picker',
+        plugins_url( 'scripts/color-picker.js', __FILE__ ),
+        array('wp-color-picker'), false, true
+    );
+});
+
+
+/**
+ * Adds an image URL and color to the category edition page.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'category_edit_form_fields', function( $term ) {
+    $image = get_term_meta( $term->term_id, 'xtec_image', true);
+    $color = get_term_meta( $term->term_id, 'xtec_color', true);
+    
+    ?>
+    
+    <table class="form-table">
+      <tbody>
+        <tr class="form-field">
+          <th scope="row" valign="top">
+            <label for="xtec_image">
+              <?php esc_html_e('Image URL', 'xtec-eduhack') ?>
+            </label>
+          </th>
+          <td>
+            <input id="xtec_image" name="xtec_image"
+                   value="<?= esc_attr( $image ) ?>"
+                   placeholder="http://" type="text">
+          </td>
+        </tr>
+        <tr class="form-field">
+          <th scope="row" valign="top">
+            <label for="xtec_color">
+              <?php esc_html_e('Color', 'xtec-eduhack') ?>
+            </label>
+          </th>
+          <td>
+            <input id="xtec_color" name="xtec_color"
+                   value="<?= esc_attr( $color ) ?>"
+                   type="text" class="eduhak-color-picker">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <?php
+}, 10, 2 );
+
+
+/**
+ * Save custom category fields.
+ *
+ * @since Eduhack 1.0
+ */
+add_action( 'edited_category', function( $term_id ) {
+    if ( isset($_POST['xtec_image']) ) {
+        $value = esc_url( $_POST['xtec_image'], ['http', 'https'] );
+        update_term_meta( $term_id, 'xtec_image', $value );
+    }
+    
+    if ( isset($_POST['xtec_color']) ) {
+        $value = $_POST['xtec_color'];
+        
+        if (preg_match('/^#([a-f]|[0-9]){3,6}+$/i', $value) === 1) {
+            update_term_meta( $term_id, 'xtec_color', $value );
+        }
+    }
+}, 10, 2 );
+
+
 /* COMMON PLUGINS HOOKS
  * This hooks remove ads, notices and premium options from the
  * required plugins.
