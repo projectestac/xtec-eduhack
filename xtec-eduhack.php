@@ -141,7 +141,7 @@ function xteh_duplicate_site( $form ) {
     ]);
     
     // If the blog was cloned successfuly, update its description and
-    // set the blog as public
+    // set the blog as public. Then reset the user permissions.
     
     if ( !isset( $message['error'] ) && isset( $message['site_id'] ) ) {
         $site_id = $message['site_id'];
@@ -153,6 +153,10 @@ function xteh_duplicate_site( $form ) {
         
         update_blog_option($site_id, 'blogdescription', $description);
         update_blog_option($site_id, 'blog_public', 1);
+        
+        switch_to_blog( $site_id );
+        xteh_reset_permissions();
+        restore_current_blog();
     }
     
     return $message;
@@ -213,6 +217,22 @@ function xteh_is_template() {
 }
 
 
+/**
+ * Reset the default clone user permissions for the current blog.
+ *
+ * @since Eduhack 1.0
+ */
+function xteh_reset_permissions() {
+    $roles = wp_roles();
+    
+    foreach ($roles->role_names as $slug => $name) {
+        $roles->remove_cap( $slug, 'manage_categories' );
+        $roles->remove_cap( $slug, 'switch_themes' );
+        $roles->remove_cap( $slug, 'install_themes' );
+    }
+}
+
+
 /* ACTIVATION AND INITIALIZATION
  * Hooks to initialize and configure this plugin.
  */
@@ -254,18 +274,6 @@ register_activation_hook( __FILE__, function() {
             xteh_create_template();
         }
     }
-    
-    // Set the default user permissions for cloned sites
-    
-    if ( !xteh_is_template() && !is_main_site() ) {
-        $roles = wp_roles();
-        
-        foreach ($roles->role_names as $slug => $name) {
-            $roles->remove_cap( $slug, 'manage_categories' );
-            $roles->remove_cap( $slug, 'switch_themes' );
-            $roles->remove_cap( $slug, 'install_themes' );
-        }
-    }
 });
 
 
@@ -304,10 +312,10 @@ add_action( 'wp_loaded', function() {
  */
 add_action( 'admin_menu', function() {
     if ( !is_main_site() && !is_super_admin() ) {
-        remove_submenu_page( 'themes.php', 'themes.php' );
         remove_submenu_page( 'options-general.php', 'widgetopts_plugin_settings' );
         
         if ( xteh_is_template() === false ) {
+            remove_submenu_page( 'themes.php', 'themes.php' );
             remove_submenu_page( 'edit.php', 'edit-tags.php?taxonomy=category' );
         }
     }
