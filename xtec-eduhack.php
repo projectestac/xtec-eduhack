@@ -168,6 +168,8 @@ function xteh_duplicate_site( $form ) {
 function xteh_create_template() {
     $site = get_current_site();
     
+    // Create a new template blog
+    
     $blog_id = wpmu_create_blog(
         $site->domain,
         $site->path . XTEH_BASE_PATH . 'template',
@@ -177,15 +179,37 @@ function xteh_create_template() {
         $site->id
     );
     
+    // Initialize the template options and plugins
+    
     switch_to_blog( $blog_id );
+    
     activate_plugin( 'xtec-eduhack/xtec-eduhack.php', null, false, true);
     activate_plugin( 'widget-options/plugin.php', null, false, false);
     activate_plugin( 'tabs-responsive/tabs-responsive.php', null, false, false);
     switch_theme( 'eduhack' );
+    
+    wp_insert_category([
+        'cat_name' => __('Tags', 'xtec-eduhack'),
+        'category_nicename' => 'tags'
+    ]);
+    
     restore_current_blog();
     
     update_blog_status( $blod_id, 'public', 0 );
     update_site_option( 'eduhack_template_id', $blog_id );
+}
+
+
+/**
+ * Returns if the current blog is the template blog.
+ *
+ * @since Eduhack 1.0
+ */
+function xteh_is_template() {
+    $template_id = get_site_option( 'eduhack_template_id' );
+    $blog_id = get_current_blog_id();
+    
+    return ($template_id == $blog_id);
 }
 
 
@@ -230,6 +254,18 @@ register_activation_hook( __FILE__, function() {
             xteh_create_template();
         }
     }
+    
+    // Set the default user permissions for cloned sites
+    
+    if ( !xteh_is_template() && !is_main_site() ) {
+        $roles = wp_roles();
+        
+        foreach ($roles->role_names as $slug => $name) {
+            $roles->remove_cap( $slug, 'manage_categories' );
+            $roles->remove_cap( $slug, 'switch_themes' );
+            $roles->remove_cap( $slug, 'install_themes' );
+        }
+    }
 });
 
 
@@ -251,9 +287,7 @@ add_action( 'plugins_loaded', function() {
  * @since Eduhack 1.0
  */
 add_action( 'wp_loaded', function() {
-    $template_id = get_site_option( 'eduhack_template_id' );
-    
-    if ( get_current_blog_id() == $template_id ) {
+    if ( xteh_is_template() === true ) {
         if ( !is_super_admin() && !is_user_member_of_blog() ) {
             wp_redirect( network_home_url() );
             exit(1);
@@ -268,10 +302,14 @@ add_action( 'wp_loaded', function() {
  *
  * @since Eduhack 1.0
  */
-add_action('admin_menu', function() {
+add_action( 'admin_menu', function() {
     if ( !is_main_site() && !is_super_admin() ) {
         remove_submenu_page( 'themes.php', 'themes.php' );
         remove_submenu_page( 'options-general.php', 'widgetopts_plugin_settings' );
+        
+        if ( xteh_is_template() === false ) {
+            remove_submenu_page( 'edit.php', 'edit-tags.php?taxonomy=category' );
+        }
     }
 }, 1000);
 
