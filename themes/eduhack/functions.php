@@ -80,6 +80,71 @@ function ehth_get_category_order() {
 
 
 /**
+ * Prints pagination links to the posts on the same category as
+ * the current post.
+ *
+ * @since Eduhack 1.0
+ */
+function ehth_category_links() {
+    // Obtain the current post and category
+    
+    $post_id = get_the_ID();
+    $category = end(get_the_category($post_id));
+    $meta = get_option( "category_" . $category->term_id );
+    $order = isset($meta['sort_posts']) ? $cat_meta['sort_posts'] : 'ASC';
+    
+    // Query all the posts in the same category
+    
+    $query = new WP_Query([
+        'category_name' => $category->slug,
+        'posts_per_page' => -1,
+        'orderby' => [ 'date' => $order ],
+        'fields' => 'ids'
+    ]);
+    
+    // Return the links to the next and previous posts
+    
+    if ( $query->have_posts() ) {
+        $count = 0;
+        
+        echo "<ul class=\"category-pages\">";
+        
+        while ( $query->have_posts() ) {
+            $query->the_post();
+            
+            $title = get_the_title();
+            $link = get_permalink();
+            $count++;
+            
+            echo ($post_id === get_the_ID()) ? "<li class=\"active\">" : "<li>";
+            echo "<a href=\"$link\" title=\"$title\">$count</a></li>";
+            echo "</li>";
+        }
+        
+        wp_reset_postdata();
+        
+        echo "</ul>";
+    }
+}
+
+
+/**
+ * Prints an image for the current post category.
+ *
+ * @since Eduhack 1.0
+ */
+function xteh_cateogry_image() {
+    $post_id = get_the_ID();
+    $term = end(get_the_category($the_ID));
+    $image = get_term_meta( $term->term_id, 'xtec_image', true);
+    
+    if ( $image !== '' ) {
+        echo "<img src=\"$image\" alt=\"{$term->name}\">";
+    }
+}
+
+
+/**
  * Registers this theme's action hooks and removes the actions that
  * conflict with this theme behaviour.
  *
