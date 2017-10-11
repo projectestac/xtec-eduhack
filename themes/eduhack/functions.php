@@ -86,45 +86,66 @@ function ehth_get_category_order() {
  * @since Eduhack 1.0
  */
 function ehth_category_links() {
+    $links = [];
+    $index = 0;
+    
     // Obtain the current post and category
     
     $post_id = get_the_ID();
     $category = end(get_the_category($post_id));
     $meta = get_option( "category_" . $category->term_id );
-    $order = isset($meta['sort_posts']) ? $cat_meta['sort_posts'] : 'ASC';
+    $order = isset($meta['sort_posts']) ? $meta['sort_posts'] : 'ASC';
+    $stickies = get_option( 'sticky_posts' );
     
-    // Query all the posts in the same category
+    // Prepend sticky post to the links
     
-    $query = new WP_Query([
+    $stickyQuery = new WP_Query([
         'category_name' => $category->slug,
         'posts_per_page' => -1,
+        'fields' => 'ids',
         'orderby' => [ 'date' => $order ],
-        'fields' => 'ids'
+        'post__in' => $stickies
     ]);
     
-    // Return the links to the next and previous posts
-    
-    if ( $query->have_posts() ) {
-        $count = 0;
-        
-        echo "<ul class=\"category-pages\">";
-        
-        while ( $query->have_posts() ) {
-            $query->the_post();
+    if ( $stickyQuery->have_posts() ) {
+        while ( $stickyQuery->have_posts() ) {
+            $stickyQuery->the_post();
             
-            $title = get_the_title();
-            $link = get_permalink();
-            $count++;
-            
-            echo ($post_id === get_the_ID()) ? "<li class=\"active\">" : "<li>";
-            echo "<a href=\"$link\" title=\"$title\">$count</a></li>";
-            echo "</li>";
+            $links[$index++] = [
+                'id' => get_the_ID(),
+                'title' => get_the_title(),
+                'href' => get_permalink()
+            ];
         }
-        
-        wp_reset_postdata();
-        
-        echo "</ul>";
     }
+    
+    // Append non-sticky post to the links
+    
+    $postQuery = new WP_Query([
+        'category_name' => $category->slug,
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+        'orderby' => [ 'date' => $order ],
+        'post__not_in' => $stickies
+    ]);
+    
+    if ( $postQuery->have_posts() ) {
+        while ( $postQuery->have_posts() ) {
+            $postQuery->the_post();
+            
+            $links[$index++] = [
+                'id' => get_the_ID(),
+                'title' => get_the_title(),
+                'href' => get_permalink()
+            ];
+        }
+    }
+    
+    // Reset the post data
+    
+    wp_reset_postdata();
+    
+    return $links;
 }
 
 

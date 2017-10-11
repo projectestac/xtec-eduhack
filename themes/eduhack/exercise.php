@@ -11,6 +11,12 @@ get_header();
 <div class="content thin eduhack-exercise">
 
   <?php if (have_posts()) : while (have_posts()) : the_post(); ?>
+    <?php
+    
+      $post_links = ehth_category_links();
+      $post_id = get_the_ID();
+    
+    ?>
     
     <!-- Exercise header -->
     
@@ -20,10 +26,21 @@ get_header();
         <?php the_category(' / ') ?>
       </div>
       <div class="exercise-pagination">
-        <?php ehth_category_links(); ?>
-        <?php the_posts_pagination(); ?> 
+        <?php if ( count($post_links) ): ?>
+          <ul class="category-pages">
+            <?php foreach ($post_links as $index => $link): ?>
+              <li <?= ($link['id'] == $post_id) ? 'class="active"' : ''; ?>>
+                <a href="<?= $link['href'] ?>" title="<?= $link['title'] ?>">
+                  <?= 1 + $index ?>
+                </a>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
       </div>
     </div>
+    
+    <!-- Exercise contents -->
     
     <div id="post-<?php the_ID(); ?>" <?php post_class('single'); ?>>
 
@@ -123,22 +140,37 @@ get_header();
       <!-- Post navigation -->
       
       <?php
-        $prev_post = get_previous_post(true);
-        $next_post = get_next_post(true);
+
+        $next_link = null;
+        $prev_link = null;
+        
+        foreach ( $post_links as $i => $link ) {
+            if ( $link['id'] == $post_id ) {
+                if ( key_exists($i + 1, $post_links) ) {
+                    $next_link = $post_links[$i + 1];
+                }
+                
+                if ( key_exists($i - 1, $post_links) ) {
+                    $prev_link = $post_links[$i - 1];
+                }
+                break;
+            }
+        }
+
       ?>
       
       <div class="post-navigation">
-        <?php if (!empty( $prev_post )): ?>
-          <a class="post-nav-prev" href="<?php echo get_permalink( $prev_post->ID ); ?>">
+        <?php if (!is_null( $prev_link )): ?>
+          <a class="post-nav-prev" href="<?= $prev_link['href'] ?>">
             <p>&larr; <?php _e('Previous step', 'xtec-eduhack'); ?></p>
-            <p><?= get_the_title($prev_post) ?></p>
+            <p><?= $prev_link['title'] ?></p>
           </a>
         <?php endif; ?>
         
-        <?php if (!empty( $next_post )): ?>
-          <a class="post-nav-next" href="<?php echo get_permalink( $next_post->ID ); ?>">          
+        <?php if (!is_null( $next_link )): ?>
+          <a class="post-nav-next" href="<?= $next_link['href'] ?>">
             <p><?php _e('Next step', 'xtec-eduhack'); ?> &rarr;</p>
-            <p><?= get_the_title($next_post) ?></p>
+            <p><?= $next_link['title'] ?></p>
           </a>
         <?php endif; ?>
       </div>

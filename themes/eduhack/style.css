@@ -370,6 +370,7 @@ body {
   width: auto;
   height: 32px;
   margin-right: 1rem;
+  border-radius: 100%;
 }
 
 .exercise-categories a {
@@ -405,7 +406,7 @@ body {
 }
 
 
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .exercise-header {
     flex-direction: column;
     max-width: 85%;
@@ -423,7 +424,9 @@ body {
   .exercise-pagination .category-pages {
     text-align: center;
   }
-  
+}
+
+@media (max-width: 500px) {
   .eduhack-exercise .post-navigation {
     flex-direction: column;
   }
