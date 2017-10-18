@@ -190,6 +190,8 @@ function xteh_create_template() {
     activate_plugin( 'xtec-eduhack/xtec-eduhack.php', null, false, true);
     activate_plugin( 'widget-options/plugin.php', null, false, false);
     activate_plugin( 'tabs-responsive/tabs-responsive.php', null, false, false);
+    activate_plugin( 'eduhack/eduhack-projects-widget.php', null, false, false);
+    
     switch_theme( 'eduhack' );
     
     wp_insert_category([
