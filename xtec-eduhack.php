@@ -431,8 +431,9 @@ add_action( 'edited_category', function( $term_id ) {
     
     if ( isset($_POST['xtec_color']) ) {
         $value = $_POST['xtec_color'];
+        $regex = '/^#([a-f]|[0-9]){3,6}+$/i';
         
-        if (preg_match('/^#([a-f]|[0-9]){3,6}+$/i', $value) === 1) {
+        if (empty($value) || preg_match($regex, $value) === 1) {
             update_term_meta( $term_id, 'xtec_color', $value );
         }
     }
