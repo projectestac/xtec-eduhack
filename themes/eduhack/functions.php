@@ -213,11 +213,11 @@ add_action( 'pre_get_posts', function( $query ) {
  *
  * @since Eduhack 1.0
  */
-add_filter( 'the_posts', function( $posts ) {
-    if ( is_admin() || !is_main_query() )
+add_filter( 'the_posts', function( $posts, $query ) {
+    if ( is_admin() || !$query->is_main_query() )
         return $posts;
     
-    if ( get_query_var( 'paged' ) > 1 || !is_category() )
+    if ( $query->paged > 1 || !$query->is_category() )
         return $posts;
     
     // Prepend sticky posts at the top
@@ -242,7 +242,7 @@ add_filter( 'the_posts', function( $posts ) {
     }
     
     return $posts;
-});
+}, 10, 2);
 
 
 /**
