@@ -155,6 +155,7 @@ function xteh_duplicate_site( $form ) {
         update_blog_option($site_id, 'blog_public', 1);
         
         switch_to_blog( $site_id );
+        xteh_create_cpt_project($title, $description);
         xteh_reset_permissions();
         restore_current_blog();
     }
@@ -203,6 +204,27 @@ function xteh_create_template() {
     
     update_blog_status( $blod_id, 'public', 0 );
     update_site_option( 'eduhack_template_id', $blog_id );
+}
+
+
+/**
+ * Create a new project post for the 'eduhack' plugin.
+ *
+ * @param $title            Project title
+ * @param $description      Project description
+ *
+ * @since Eduhack 1.0
+ */
+function xteh_create_cpt_project($title, $description) {
+    $project_id = wp_insert_post([
+        'post_type' => 'cpt_project',
+        'post_status' => 'publish',
+        'comment_status' => 'closed',
+        'post_title' => $title,
+        'meta_input' => [
+            'widget-description' => $description
+        ]
+    ]);
 }
 
 
