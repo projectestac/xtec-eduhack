@@ -196,6 +196,11 @@ function xteh_create_template() {
     switch_theme( 'eduhack' );
     
     wp_insert_category([
+        'cat_name' => __('Home page', 'xtec-eduhack'),
+        'category_nicename' => 'homepage'
+    ]);
+    
+    wp_insert_category([
         'cat_name' => __('Tags', 'xtec-eduhack'),
         'category_nicename' => 'tags'
     ]);

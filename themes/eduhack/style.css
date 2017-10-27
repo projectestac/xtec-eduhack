@@ -7,7 +7,7 @@
  License:      GNU General Public License v2 or later
  License URI:  http://www.gnu.org/licenses/gpl-2.0.html
  Tags:         eduhack, xtec
- Text Domain:  eduhack-theme
+ Text Domain:  xtec-eduhack
 */
 
 
@@ -68,6 +68,10 @@ body {
 
 .sidebar {
 	font-size: .9em;
+}
+
+.home-post {
+  padding: 0 10px;
 }
 
 .posts {
@@ -406,6 +410,10 @@ body {
 
 
 @media (max-width: 600px) {
+  .home-post {
+    padding: 0;
+  }
+  
   .exercise-header {
     flex-direction: column;
     max-width: 85%;
