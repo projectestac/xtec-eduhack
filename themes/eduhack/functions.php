@@ -154,7 +154,7 @@ function ehth_category_links() {
  *
  * @since Eduhack 1.0
  */
-function xteh_cateogry_image() {
+function ehth_cateogry_image() {
     $post_id = get_the_ID();
     $term = end(get_the_category($the_ID));
     $image = get_term_meta( $term->term_id, 'xtec_image', true);

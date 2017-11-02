@@ -22,7 +22,7 @@ get_header();
     
     <div class="exercise-header">
       <div class="exercise-categories">
-        <?php xteh_cateogry_image() ?>
+        <?php ehth_cateogry_image() ?>
         <?php the_category(' / ') ?>
       </div>
       <div class="exercise-pagination">
