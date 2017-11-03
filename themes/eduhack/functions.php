@@ -71,7 +71,6 @@ function ehth_print_styles() {
 function ehth_get_category_order() {
     if ( isset($_SESSION['xtec_category']) ) {
         $order = $_SESSION['xtec_category'];
-        
         return ($order === 'ASC') ? 'asc' : 'desc';
     }
     
@@ -94,28 +93,30 @@ function ehth_category_links() {
     $post_id = get_the_ID();
     $category = end(get_the_category($post_id));
     $meta = get_option( "category_" . $category->term_id );
-    $order = isset($meta['sort_posts']) ? $meta['sort_posts'] : 'ASC';
+    $order = isset($meta['sort_posts']) ? $meta['sort_posts'] : 'DESC';
     $stickies = get_option( 'sticky_posts' );
     
     // Prepend sticky post to the links
     
-    $stickyQuery = new WP_Query([
-        'category_name' => $category->slug,
-        'posts_per_page' => -1,
-        'fields' => 'ids',
-        'orderby' => [ 'date' => $order ],
-        'post__in' => $stickies
-    ]);
-    
-    if ( $stickyQuery->have_posts() ) {
-        while ( $stickyQuery->have_posts() ) {
-            $stickyQuery->the_post();
-            
-            $links[$index++] = [
-                'id' => get_the_ID(),
-                'title' => get_the_title(),
-                'href' => get_permalink()
-            ];
+    if (count($stickies) > 0) {
+        $stickyQuery = new WP_Query([
+            'category_name' => $category->slug,
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'orderby' => [ 'date' => $order ],
+            'post__in' => $stickies
+        ]);
+        
+        if ( $stickyQuery->have_posts() ) {
+            while ( $stickyQuery->have_posts() ) {
+                $stickyQuery->the_post();
+                
+                $links[$index++] = [
+                    'id' => get_the_ID(),
+                    'title' => get_the_title(),
+                    'href' => get_permalink()
+                ];
+            }
         }
     }
     
