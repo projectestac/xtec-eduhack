@@ -154,39 +154,22 @@ body {
   padding-bottom: 0;
 }
 
-/* WA: Fix tabs-responsive styles. Note that this overwrites the
-   plugin's «Tabs Description Font Size» and «Font Style» options */
-
-.page-title .wpsm_nav-tabs span {
-  float: inherit;
-  font-weight: inherit;
-  font-style: inherit;
-  color: inherit;
+.widget_links h3 {
+  display: none;
 }
 
-.post-inner .tab-content .tab-pane,
-.widget-content .tab-content .tab-pane,
-.category-description .tab-content .tab-pane {
-  font-family: 'Lato', 'Helvetica Neue', Helvetica, sans-serif;
+.widget_links a {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgb(0, 124, 176);
 }
 
-.post-inner .tab-content .tab-pane {
-  font-size: 15px;
-  color: rgb(51, 51, 51);
-}
-
-.widget-content .tab-content .tab-pane {
-  font-size: 12.6px;
-  color: rgb(85, 85, 85);
-}
-
-.category-description .tab-content .tab-pane {
-  font-size: 14px;
-  color: rgb(102, 102, 102);
-}
-
-.category-description div[id^="tab_container_"] {
-  margin-bottom: 0 !important;
+.main-menu::before,
+.widgets::before,
+.widget + .widget::before,
+.menu::before,
+.credits::before {
+  width: 100%;
 }
 
 
