@@ -190,7 +190,6 @@ function xteh_create_template() {
     
     activate_plugin( 'xtec-eduhack/xtec-eduhack.php', null, false, true);
     activate_plugin( 'widget-options/plugin.php', null, false, false);
-    activate_plugin( 'tabs-responsive/tabs-responsive.php', null, false, false);
     activate_plugin( 'eduhack/eduhack-projects-widget.php', null, false, false);
     
     switch_theme( 'eduhack' );
@@ -509,26 +508,4 @@ add_action( 'wp_loaded', function() {
     remove_action( 'widgetopts_module_cards', 'widgetopts_settings_siteorigin', 65 );
     remove_action( 'widgetopts_module_cards', 'widgetopts_settings_styling', 120 );
     remove_action( 'widgetopts_module_cards', 'widgetopts_settings_taxonomies', 140 );
-    
-    // Plugin: tabs-responsive
-    
-    remove_action( 'admin_menu' , 'wpsm_tabs_r_recom_menu' );
-    remove_action( 'admin_notices', 'wpsm_tabs_r_review' );
-    remove_action( 'in_admin_header','wpsm_tabs_respnsive_header_info' );
-});
-
-
-/**
- * Remove plugin metaboxes if they are registered. The removed metaboxes
- * usually contain only advertisings, so it's safe to remove them.
- *
- * @since Eduhack 1.0
- */
-add_action( 'do_meta_boxes', function() {
-    // Plugin: tabs-responsive
-    
-    remove_meta_box( 'tabs_r_more_pro', 'tabs_responsive', 'normal' );
-    remove_meta_box( 'tabs_r_rateus', 'tabs_responsive', 'side' );
-    remove_meta_box( 'tabs_r_shortcode', 'tabs_responsive', 'normal' );
-    remove_meta_box( 'wpsm_tabs_r_pic_more_pro', 'tabs_responsive', 'normal' );
 });

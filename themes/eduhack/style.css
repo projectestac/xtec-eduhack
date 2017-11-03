@@ -442,25 +442,3 @@ body {
     display: none;
   }
 }
-
-
-/* == Exercise tabs ========================================================= */
-
-.eduhack-exercise div[id^='tab_container_'] {
-  margin-top: 3rem;
-}
-
-.eduhack-exercise .wpsm_nav-tabs > li > a,
-.eduhack-exercise .wpsm_nav-tabs > li.active > a {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  min-width: 8rem;
-}
-
-.eduhack-exercise ul.wpsm_nav-tabs li a .fa {
-  font-size: 25px;
-  padding: .5rem 1rem;
-}
